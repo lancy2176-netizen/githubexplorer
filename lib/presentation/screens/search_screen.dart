@@ -35,21 +35,57 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Find your next follow',
-              style: Theme.of(context).textTheme.headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary
+                    .withValues(alpha: .09),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 15,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    'DEVELOPER DISCOVERY',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .9,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 6),
-            const Text('Search millions of GitHub developers.'),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            Text(
+              'Find your people.',
+              style: Theme.of(context).textTheme.headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -1.1),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'Explore developers and the work they share.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 18),
             TextField(
               controller: controller,
               onChanged: (value) =>
                   ref.read(searchProvider.notifier).queryChanged(value),
               decoration: InputDecoration(
-                hintText: 'Search by username or name',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search by username, name, or skill',
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 suffixIcon: controller.text.isEmpty
                     ? null
                     : IconButton(
@@ -59,9 +95,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           ref.read(searchProvider.notifier).queryChanged('');
                         },
                       ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
               ),
             ),
             const SizedBox(height: 14),
@@ -122,6 +155,39 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   ),
                 ],
               ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 2, 4, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Results for “${state.query}”',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${state.users.length} found',
+                      style: Theme.of(context).textTheme.labelSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Expanded(child: wide ? _masterDetail(state) : _phoneResults(state)),
             if (state.loadingMore) const LinearProgressIndicator(),
             if (state.hasMore && !wide)
@@ -164,6 +230,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   itemBuilder: (_, i) => UserTile(
                     user: state.users[i],
                     favorites: widget.favorites,
+                    selected: state.users[i].login == selected,
                     onTap: () =>
                         setState(() => selectedLogin = state.users[i].login),
                   ),

@@ -90,18 +90,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 64,
-            backgroundImage: NetworkImage(u.avatarUrl),
-            onBackgroundImageError: (_, _) {},
+          Container(
+            width: 132,
+            height: 132,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.tertiary,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: ClipOval(
+                child: Image.network(
+                  u.avatarUrl,
+                  width: 124,
+                  height: 124,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Icon(
+                    Icons.person_rounded,
+                    size: 54,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             u.name ?? u.login,
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -.5),
             textAlign: TextAlign.center,
           ),
-          Text('@${u.login}', style: Theme.of(context).textTheme.titleMedium),
+          Container(
+            margin: const EdgeInsets.only(top: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '@${u.login}',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
           if (u.bio != null)
             Padding(
               padding: const EdgeInsets.only(top: 12),
@@ -116,14 +158,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _stat('Following', u.following),
                 _stat('Repos', u.publicRepos),
               ] else
-                const Text(
-                  'Showing the saved profile details available offline.',
+                Text(
+                  'Saved offline',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               FutureBuilder<bool>(
                 future: widget.favorites.contains(u.login),
@@ -135,7 +182,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label: Text(snap.data == true ? 'Favorited' : 'Favorite'),
                 ),
               ),
-              const SizedBox(width: 8),
               OutlinedButton.icon(
                 onPressed: () =>
                     Share.share(u.url, subject: 'GitHub profile: ${u.login}'),
@@ -154,7 +200,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('About', style: Theme.of(context).textTheme.titleLarge),
+          Row(
+            children: [
+              Icon(
+                Icons.person_pin_circle_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 9),
+              Text(
+                'About',
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           _info(Icons.business, u.company),
           _info(Icons.location_on, u.location),

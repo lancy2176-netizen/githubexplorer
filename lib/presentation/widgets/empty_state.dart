@@ -17,15 +17,38 @@ class EmptyState extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 52, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(height: 14),
+        Container(
+          width: 78,
+          height: 78,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: .10),
+            borderRadius: BorderRadius.circular(26),
+          ),
+          child: Icon(
+            icon,
+            size: 36,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 18),
         Text(
           title,
-          style: Theme.of(context).textTheme.titleLarge,
+          style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -.4),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 6),
-        Text(subtitle, textAlign: TextAlign.center),
+        const SizedBox(height: 8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 1.5,
+            ),
+          ),
+        ),
         if (action != null)
           Padding(padding: const EdgeInsets.only(top: 16), child: action!),
       ],

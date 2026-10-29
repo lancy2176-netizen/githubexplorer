@@ -43,31 +43,103 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         return const Center(child: CircularProgressIndicator());
       }
       final users = snap.data!;
-      if (users.isEmpty) {
-        return const Center(
-          child: EmptyState(
-            icon: Icons.favorite_border,
-            title: 'No favorites yet',
-            subtitle: 'Save profiles to keep them available offline.',
-          ),
-        );
-      }
       return LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 900;
           return Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(wide ? 28 : 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Your favorites',
-                  style: Theme.of(context).textTheme.headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'YOUR COLLECTION',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  letterSpacing: 1.3,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Favorite developers',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -.7,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Saved profiles stay close, even when you’re offline.',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary
+                            .withValues(alpha: .10),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.favorite_rounded,
+                            size: 17,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 7),
+                          Text(
+                            '${users.length}',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 22),
                 Expanded(
-                  child: wide
+                  child: users.isEmpty
+                      ? Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 440),
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: const EmptyState(
+                                  icon: Icons.favorite_border_rounded,
+                                  title: 'Your collection starts here',
+                                  subtitle: 'Tap the heart on a developer profile and it will be saved here for later.',
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : wide
                       ? GridView.builder(
                           gridDelegate:
                               const SliverGridDelegateWithMaxCrossAxisExtent(

@@ -12,6 +12,7 @@ A responsive Flutter app for searching GitHub users, viewing account profiles, a
 - Custom profile URI: `githubexplorer://user/{username}` (for example, `githubexplorer://user/octocat`).
 - Responsive list/grid screens and a two-column profile layout on wider screens.
 - Light and dark themes follow the device setting; an offline banner appears when connectivity is lost.
+- Montserrat typography, a violet accent palette, and shared rounded surfaces keep the interface consistent across screens.
 
 ## Architecture and state management
 

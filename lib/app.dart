@@ -11,6 +11,7 @@ import 'presentation/screens/profile_screen.dart';
 import 'presentation/screens/search_screen.dart';
 import 'presentation/providers/search_provider.dart';
 import 'presentation/widgets/app_shell.dart';
+import 'presentation/theme/app_theme.dart';
 
 class GitHubExplorer extends StatefulWidget {
   const GitHubExplorer({
@@ -99,18 +100,8 @@ class _GitHubExplorerState extends State<GitHubExplorer> {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff6c63ff)),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xfff7f7fb),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xffa69dff),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
     ),
   );
 }

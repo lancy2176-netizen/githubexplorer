@@ -22,15 +22,47 @@ class _AppShellState extends State<AppShell> {
     final loc = GoRouterState.of(context).matchedLocation;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'GitHub Explorer',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        toolbarHeight: 76,
+        title: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.code_rounded, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'GitHub Explorer',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  'DEVELOPER DIRECTORY',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    letterSpacing: 1.1,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         actions: [
-          IconButton(
-            tooltip: 'Sign out',
-            onPressed: () => widget.auth.logout(),
-            icon: const Icon(Icons.logout),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: IconButton.filledTonal(
+              tooltip: 'Sign out',
+              onPressed: () => widget.auth.logout(),
+              icon: const Icon(Icons.logout_rounded),
+            ),
           ),
         ],
       ),
@@ -48,26 +80,51 @@ class _AppShellState extends State<AppShell> {
                         state.data!.every(
                           (result) => result == ConnectivityResult.none,
                         );
-                    return offline
-                        ? Material(
-                            color: Theme.of(context).colorScheme.errorContainer,
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Text(
-                                  'You are offline. Saved favorites are still available.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onErrorContainer,
+                    return AnimatedSize(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      child: offline
+                          ? Material(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .errorContainer,
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 9,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.wifi_off_rounded,
+                                        size: 17,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onErrorContainer,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'You’re offline · Saved favorites are still available',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onErrorContainer,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                            ),
-                          )
-                        : const SizedBox.shrink();
+                            )
+                          : const SizedBox.shrink(),
+                    );
                   },
                 ),
           ),
