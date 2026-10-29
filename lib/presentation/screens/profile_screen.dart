@@ -21,7 +21,18 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<GitHubUser> future = widget.api.profile(widget.login);
+  late Future<GitHubUser> future = _loadProfile();
+
+  Future<GitHubUser> _loadProfile() async {
+    try {
+      return await widget.api.profile(widget.login);
+    } on Object {
+      final saved = await widget.favorites.find(widget.login);
+      if (saved != null) return saved;
+      rethrow;
+    }
+  }
+
   @override
   Widget build(BuildContext context) => FutureBuilder<GitHubUser>(
     future: future,
@@ -36,8 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'Profile unavailable',
             subtitle: snap.error.toString(),
             action: FilledButton.tonal(
-              onPressed: () =>
-                  setState(() => future = widget.api.profile(widget.login)),
+              onPressed: () => setState(() => future = _loadProfile()),
               child: const Text('Retry'),
             ),
           ),
@@ -101,9 +111,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _stat('Followers', u.followers),
-              _stat('Following', u.following),
-              _stat('Repos', u.publicRepos),
+              if (u.isDetailed) ...[
+                _stat('Followers', u.followers),
+                _stat('Following', u.following),
+                _stat('Repos', u.publicRepos),
+              ] else
+                const Text(
+                  'Showing the saved profile details available offline.',
+                ),
             ],
           ),
           const SizedBox(height: 16),

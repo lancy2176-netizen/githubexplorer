@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -8,8 +9,38 @@ class AuthRepository extends ChangeNotifier {
   String? _token;
   DateTime? _expires;
   Timer? _expiryTimer;
-  bool get isAuthenticated =>
-      _token != null && _expires != null && DateTime.now().isBefore(_expires!);
+  bool get isAuthenticated {
+    final token = _token;
+    final expiry = _expires;
+    if (token == null || expiry == null || !DateTime.now().isBefore(expiry)) {
+      return false;
+    }
+    final segments = token.split('.');
+    if (segments.length != 3 ||
+        segments[0] != 'mock' ||
+        segments[2] != 'signature') {
+      return false;
+    }
+    try {
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(segments[1]))),
+      ) as Map<String, dynamic>;
+      final subject = payload['sub'] as String?;
+      final expiration = payload['exp'] as int?;
+      return subject != null &&
+          subject.trim().isNotEmpty &&
+          expiration != null &&
+          DateTime.fromMillisecondsSinceEpoch(expiration * 1000)
+              .isAtSameMomentAs(
+                DateTime.fromMillisecondsSinceEpoch(
+                  expiry.millisecondsSinceEpoch ~/ 1000 * 1000,
+                ),
+              );
+    } on Object {
+      return false;
+    }
+  }
+
   String? get token => isAuthenticated ? _token : null;
 
   Future<void> restore() async {
@@ -40,8 +71,19 @@ class AuthRepository extends ChangeNotifier {
     );
     _token = 'mock.$payload.signature';
     _expires = exp;
-    await _storage.write(key: 'mock_jwt', value: _token);
-    await _storage.write(key: 'mock_jwt_expiry', value: exp.toIso8601String());
+    try {
+      await _storage.write(key: 'mock_jwt', value: _token);
+      await _storage.write(
+        key: 'mock_jwt_expiry',
+        value: exp.toIso8601String(),
+      );
+    } on Object catch (_) {
+      _token = null;
+      _expires = null;
+      await _storage.delete(key: 'mock_jwt');
+      await _storage.delete(key: 'mock_jwt_expiry');
+      rethrow;
+    }
     _scheduleExpiry();
     notifyListeners();
   }

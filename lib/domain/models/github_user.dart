@@ -35,7 +35,8 @@ class GitHubUser {
     publicRepos: json['public_repos'] as int? ?? 0,
     followers: json['followers'] as int? ?? 0,
     following: json['following'] as int? ?? 0,
-    isDetailed: json.containsKey('public_repos'),
+    isDetailed:
+        json['is_detailed'] as bool? ?? json.containsKey('public_repos'),
   );
 
   Map<String, Object?> toMap() => {
@@ -51,5 +52,6 @@ class GitHubUser {
     'public_repos': publicRepos,
     'followers': followers,
     'following': following,
+    'is_detailed': isDetailed,
   };
 }

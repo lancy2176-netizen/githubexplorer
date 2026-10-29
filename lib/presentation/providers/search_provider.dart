@@ -7,14 +7,25 @@ import '../../data/github_api.dart';
 import '../../domain/models/github_user.dart';
 
 final githubApiProvider = Provider<GitHubApi>((ref) => GitHubApi());
-final searchProvider = NotifierProvider<SearchNotifier, SearchState>(SearchNotifier.new);
+final searchProvider = NotifierProvider<SearchNotifier, SearchState>(
+  SearchNotifier.new,
+);
 
 enum SearchPhase { idle, loading, success, empty, error }
+
 enum SearchErrorKind { network, rateLimit, api }
 
 class SearchState {
-  const SearchState({this.phase = SearchPhase.idle, this.query = '', this.users = const [],
-    this.page = 1, this.hasMore = false, this.loadingMore = false, this.error, this.errorKind});
+  const SearchState({
+    this.phase = SearchPhase.idle,
+    this.query = '',
+    this.users = const [],
+    this.page = 1,
+    this.hasMore = false,
+    this.loadingMore = false,
+    this.error,
+    this.errorKind,
+  });
 
   final SearchPhase phase;
   final String query;
@@ -41,10 +52,16 @@ class SearchNotifier extends Notifier<SearchState> {
     _debounce?.cancel();
     final query = value.trim();
     _generation++;
-    state = SearchState(phase: query.isEmpty ? SearchPhase.idle : SearchPhase.loading, query: query);
+    state = SearchState(
+      phase: query.isEmpty ? SearchPhase.idle : SearchPhase.loading,
+      query: query,
+    );
     if (query.isEmpty) return;
     final generation = _generation;
-    _debounce = Timer(const Duration(milliseconds: 400), () => _load(generation: generation));
+    _debounce = Timer(
+      const Duration(milliseconds: 400),
+      () => _load(generation: generation),
+    );
   }
 
   Future<void> retry() async {
@@ -55,20 +72,42 @@ class SearchNotifier extends Notifier<SearchState> {
   }
 
   Future<void> loadMore() async {
-    if (state.phase != SearchPhase.success || !state.hasMore || state.loadingMore) return;
+    if (state.phase != SearchPhase.success ||
+        !state.hasMore ||
+        state.loadingMore) {
+      return;
+    }
     final generation = _generation;
     final requestedPage = state.page + 1;
-    state = SearchState(phase: SearchPhase.success, query: state.query, users: state.users,
-      page: state.page, hasMore: state.hasMore, loadingMore: true);
+    state = SearchState(
+      phase: SearchPhase.success,
+      query: state.query,
+      users: state.users,
+      page: state.page,
+      hasMore: state.hasMore,
+      loadingMore: true,
+    );
     try {
       final next = await _api.search(state.query, requestedPage);
       if (generation != _generation) return;
-      state = SearchState(phase: SearchPhase.success, query: state.query,
-        users: [...state.users, ...next], page: requestedPage, hasMore: next.length == 20);
+      state = SearchState(
+        phase: SearchPhase.success,
+        query: state.query,
+        users: [...state.users, ...next],
+        page: requestedPage,
+        hasMore: next.length == 20,
+      );
     } catch (error) {
       if (generation != _generation) return;
-      state = SearchState(phase: SearchPhase.success, query: state.query, users: state.users,
-        page: state.page, hasMore: state.hasMore, error: _message(error), errorKind: _kind(error));
+      state = SearchState(
+        phase: SearchPhase.success,
+        query: state.query,
+        users: state.users,
+        page: state.page,
+        hasMore: state.hasMore,
+        error: _message(error),
+        errorKind: _kind(error),
+      );
     }
   }
 
@@ -79,19 +118,28 @@ class SearchNotifier extends Notifier<SearchState> {
     try {
       final users = await _api.search(query, 1);
       if (generation != _generation) return;
-      state = SearchState(phase: users.isEmpty ? SearchPhase.empty : SearchPhase.success,
-        query: query, users: users, hasMore: users.length == 20);
+      state = SearchState(
+        phase: users.isEmpty ? SearchPhase.empty : SearchPhase.success,
+        query: query,
+        users: users,
+        hasMore: users.length == 20,
+      );
     } catch (error) {
       if (generation != _generation) return;
-      state = SearchState(phase: SearchPhase.error, query: query, error: _message(error), errorKind: _kind(error));
+      state = SearchState(
+        phase: SearchPhase.error,
+        query: query,
+        error: _message(error),
+        errorKind: _kind(error),
+      );
     }
   }
 
   SearchErrorKind _kind(Object error) => error is http.ClientException
       ? SearchErrorKind.network
       : error is ApiException && error.statusCode == 403
-          ? SearchErrorKind.rateLimit
-          : SearchErrorKind.api;
+      ? SearchErrorKind.rateLimit
+      : SearchErrorKind.api;
 
   String _message(Object error) => error is http.ClientException
       ? 'No internet connection. Check your connection and retry.'

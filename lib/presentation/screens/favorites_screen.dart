@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../data/favorites_repository.dart';
 import '../../data/github_api.dart';
 import '../../domain/models/github_user.dart';

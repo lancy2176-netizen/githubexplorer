@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'data/auth_repository.dart';
 import 'data/favorites_repository.dart';
 import 'app.dart';

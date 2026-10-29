@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
+
 import '../domain/models/github_user.dart';
 
 class FavoritesRepository extends ChangeNotifier {
@@ -33,6 +35,20 @@ class FavoritesRepository extends ChangeNotifier {
     where: 'login = ?',
     whereArgs: [login],
   )).isNotEmpty;
+
+  Future<GitHubUser?> find(String login) async {
+    final rows = await _db!.query(
+      'favorites',
+      where: 'login = ?',
+      whereArgs: [login],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return GitHubUser.fromJson(
+      jsonDecode(rows.single['data']! as String) as Map<String, dynamic>,
+    );
+  }
+
   Future<void> toggle(GitHubUser user) async {
     if (await contains(user.login)) {
       await _db!.delete(

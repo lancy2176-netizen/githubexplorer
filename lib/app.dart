@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import 'data/auth_repository.dart';
 import 'data/favorites_repository.dart';
 import 'data/github_api.dart';
@@ -7,6 +9,7 @@ import 'presentation/screens/favorites_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/profile_screen.dart';
 import 'presentation/screens/search_screen.dart';
+import 'presentation/providers/search_provider.dart';
 import 'presentation/widgets/app_shell.dart';
 
 class GitHubExplorer extends StatefulWidget {
@@ -44,8 +47,13 @@ class _GitHubExplorerState extends State<GitHubExplorer> {
     refreshListenable: widget.auth,
     redirect: (context, state) {
       final login = state.matchedLocation == '/login';
-      if (!widget.auth.isAuthenticated && !login) return '/login';
-      if (widget.auth.isAuthenticated && login) return '/';
+      final original = state.uri.toString();
+      if (!widget.auth.isAuthenticated && !login) {
+        return '/login?from=${Uri.encodeComponent(original)}';
+      }
+      if (widget.auth.isAuthenticated && login) {
+        return state.uri.queryParameters['from'] ?? '/';
+      }
       return null;
     },
     routes: [
@@ -54,12 +62,12 @@ class _GitHubExplorerState extends State<GitHubExplorer> {
         builder: (_, _) => LoginScreen(auth: widget.auth),
       ),
       ShellRoute(
-        builder: (context, state, child) => AppShell(auth: widget.auth, child: child),
+        builder: (context, state, child) =>
+            AppShell(auth: widget.auth, child: child),
         routes: [
           GoRoute(
             path: '/',
-            builder: (_, _) =>
-                SearchScreen(api: api, favorites: widget.favorites),
+            builder: (_, _) => SearchScreen(favorites: widget.favorites),
           ),
           GoRoute(
             path: '/favorites',
@@ -74,19 +82,35 @@ class _GitHubExplorerState extends State<GitHubExplorer> {
               favorites: widget.favorites,
             ),
           ),
+          GoRoute(
+            path: '/:username',
+            redirect: (context, state) =>
+                '/users/${state.pathParameters['username']}',
+          ),
         ],
       ),
     ],
   );
   @override
-  Widget build(BuildContext context) => MaterialApp.router(
-    title: 'GitHub Explorer',
-    routerConfig: router,
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff6c63ff)),
-      useMaterial3: true,
-      scaffoldBackgroundColor: const Color(0xfff7f7fb),
+  Widget build(BuildContext context) => ProviderScope(
+    overrides: [githubApiProvider.overrideWithValue(api)],
+    child: MaterialApp.router(
+      title: 'GitHub Explorer',
+      routerConfig: router,
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff6c63ff)),
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xfff7f7fb),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xffa69dff),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
     ),
   );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../data/auth_repository.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -77,6 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         await widget.auth.login(username.text, password.text);
                       } on FormatException catch (e) {
                         setState(() => error = e.message);
+                      } on Object {
+                        setState(
+                          () => error = 'Could not securely save the session. Please try again.',
+                        );
                       }
                     },
                     child: const Text('Sign in'),

@@ -33,13 +33,19 @@ class GitHubApi {
       );
     }
     if (response.statusCode == 403) {
-      throw const ApiException('GitHub rate limit reached. Try again later.', statusCode: 403);
+      throw const ApiException(
+        'GitHub rate limit reached. Try again later.',
+        statusCode: 403,
+      );
     }
     if (response.statusCode == 404) {
       throw const ApiException('GitHub user not found.', statusCode: 404);
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException('GitHub is unavailable. Please try again.', statusCode: response.statusCode);
+      throw ApiException(
+        'GitHub is unavailable. Please try again.',
+        statusCode: response.statusCode,
+      );
     }
     return jsonDecode(response.body);
   }
@@ -54,6 +60,7 @@ class GitHubApi {
       uri,
       headers: {
         'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
         if (token != null) 'Authorization': 'Bearer $token',
       },
     );
@@ -70,10 +77,16 @@ class GitHubApi {
       );
     }
     if (response.statusCode == 403) {
-      throw const ApiException('GitHub rate limit reached. Try again later.', statusCode: 403);
+      throw const ApiException(
+        'GitHub rate limit reached. Try again later.',
+        statusCode: 403,
+      );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException('Could not search GitHub users.', statusCode: response.statusCode);
+      throw ApiException(
+        'Could not search GitHub users.',
+        statusCode: response.statusCode,
+      );
     }
     final result = jsonDecode(response.body) as Map<String, dynamic>;
     return (result['items'] as List<dynamic>)
@@ -87,7 +100,11 @@ class GitHubApi {
 }
 
 class ApiException implements Exception {
-  const ApiException(this.message, {this.unauthorized = false, this.statusCode});
+  const ApiException(
+    this.message, {
+    this.unauthorized = false,
+    this.statusCode,
+  });
   final String message;
   final bool unauthorized;
   final int? statusCode;
