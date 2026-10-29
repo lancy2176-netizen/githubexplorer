@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 import '../../data/github_api.dart';
 import '../../domain/models/github_user.dart';
@@ -41,7 +41,7 @@ class SearchNotifier extends Notifier<SearchState> {
     _debounce?.cancel();
     final query = value.trim();
     _generation++;
-    state = SearchState(query: query);
+    state = SearchState(phase: query.isEmpty ? SearchPhase.idle : SearchPhase.loading, query: query);
     if (query.isEmpty) return;
     final generation = _generation;
     _debounce = Timer(const Duration(milliseconds: 400), () => _load(generation: generation));
@@ -87,13 +87,13 @@ class SearchNotifier extends Notifier<SearchState> {
     }
   }
 
-  SearchErrorKind _kind(Object error) => error is SocketException
+  SearchErrorKind _kind(Object error) => error is http.ClientException
       ? SearchErrorKind.network
       : error is ApiException && error.statusCode == 403
           ? SearchErrorKind.rateLimit
           : SearchErrorKind.api;
 
-  String _message(Object error) => error is SocketException
+  String _message(Object error) => error is http.ClientException
       ? 'No internet connection. Check your connection and retry.'
       : error.toString();
 }

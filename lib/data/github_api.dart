@@ -70,7 +70,7 @@ class GitHubApi {
       );
     }
     if (response.statusCode == 403) {
-      throw const ApiException('GitHub rate limit reached. Try again later.');
+      throw const ApiException('GitHub rate limit reached. Try again later.', statusCode: 403);
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException('Could not search GitHub users.', statusCode: response.statusCode);
