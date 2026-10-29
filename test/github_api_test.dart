@@ -10,18 +10,46 @@ void main() {
     late Uri requested;
     final client = MockClient((request) async {
       requested = request.url;
-      return http.Response(jsonEncode({'items': [
-        {'id': 7, 'login': 'octocat', 'avatar_url': 'https://example.com/avatar.png', 'html_url': 'https://github.com/octocat'},
-      ]}), 200);
+      return http.Response(
+        jsonEncode({
+          'items': [
+            {
+              'id': 7,
+              'login': 'octocat',
+              'avatar_url': 'https://example.com/avatar.png',
+              'html_url': 'https://github.com/octocat',
+            },
+          ],
+        }),
+        200,
+      );
     });
     final users = await GitHubApi(client: client).search('octo cat', 2);
-    expect(requested.queryParameters, {'q': 'octo cat', 'page': '2', 'per_page': '20'});
+    expect(requested.queryParameters, {
+      'q': 'octo cat',
+      'page': '2',
+      'per_page': '20',
+    });
     expect(users.single.login, 'octocat');
     expect(users.single.url, 'https://github.com/octocat');
   });
 
   test('search reports GitHub rate limit errors', () async {
-    final api = GitHubApi(client: MockClient((_) async => http.Response('{}', 403)));
+    final api = GitHubApi(
+      client: MockClient((_) async => http.Response('{}', 403)),
+    );
     expect(() => api.search('flutter', 1), throwsA(isA<ApiException>()));
+  });
+
+  test('mock session token is sent as a Bearer credential', () async {
+    late String? authorization;
+    final api = GitHubApi(
+      client: MockClient((request) async {
+        authorization = request.headers['authorization'];
+        return http.Response('{"items":[]}', 200);
+      }),
+    )..token = 'mock.payload.signature';
+    await api.search('flutter', 1);
+    expect(authorization, 'Bearer mock.payload.signature');
   });
 }

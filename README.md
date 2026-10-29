@@ -1,44 +1,47 @@
 # GitHub Explorer
 
-A Flutter app for discovering GitHub users, viewing profiles, and keeping a local favorites list.
+A responsive Flutter app for searching GitHub users, viewing account profiles, and saving favorites for offline browsing.
 
 ## Features
 
-- Search GitHub users through the public GitHub REST API after a 400 ms debounce.
-- Load results 20 at a time and request subsequent pages with **Load more**.
-- Open profiles with account details, repository and follower counts, and a native share action.
-- Save and remove favorites in SQLite. Favorite records remain available offline.
-- Responsive search and favorites views: cards form a grid on wide screens; profiles use a two pane layout on larger screens.
-- GoRouter routes for login, search, favorites, and `/users/:login` deep links. Unauthenticated deep links return to login and resume through the router after signing in.
-- Mock sign-in with an eight hour JWT-shaped token in platform secure storage. Empty credentials are rejected and expiry clears the session and returns to login.
-- Loading, empty, retryable error, rate limit, and offline-friendly favorite states.
+- GitHub REST API search with a 400 ms debounce, 20 results per page, load-more pagination, and distinct loading, empty, network, API, and rate-limit states.
+- Profile details from `GET /users/{username}` with native share-sheet support.
+- Mock login with JWT-shaped credentials saved by `flutter_secure_storage`, Bearer headers, an eight-hour expiry, and automatic return to login when the session expires.
+- SQLite favorites available without a network connection.
+- GoRouter navigation and authentication redirects, including resuming a protected deep link after login.
+- Custom profile URI: `githubexplorer://user/{username}` (for example, `githubexplorer://user/octocat`).
+- Responsive list/grid screens and a two-column profile layout on wider screens.
+- Light and dark themes follow the device setting; an offline banner appears when connectivity is lost.
 
-## Sign in
+## Architecture and state management
 
-This assignment uses a mock identity provider; enter any non-empty username and password. It does not create a GitHub account or grant GitHub OAuth access. The local mock token is attached as a Bearer credential to API requests; because GitHub cannot validate a mock credential, a 401 response is retried without it so public profile and search requests continue to work. Authenticated calls to a real protected service would require replacing the mock identity provider with one that issues credentials accepted by that service.
+The project separates responsibilities into `lib/data`, `lib/domain`, and `lib/presentation`. The search flow uses Riverpod `Notifier` state so query debounce, page loading, and idle/loading/success/empty/error transitions are kept outside the widget. Auth and SQLite persistence are repository classes; GoRouter owns navigation and redirects. The GitHub client is injected through a Riverpod provider, making repository and state tests deterministic.
 
-## Run
+## Authentication and API assumptions
+
+This assignment uses a mock identity provider: any non-empty username and password sign in. It does not create a GitHub account and the JWT-shaped value is not GitHub OAuth. The mock Bearer token is attached to GitHub requests; if GitHub rejects it, the public API call is retried without that mock credential. Real authenticated GitHub access requires a GitHub OAuth/PAT flow; never commit a personal token. GitHub's anonymous API rate limit applies.
+
+## Persistence and offline behavior
+
+Favorites are stored as JSON profile snapshots in a local SQLite table, allowing the favorites page to render without API access. Profile views fall back to a saved snapshot when refresh fails; snapshots from search may contain only basic account details. Search requires internet access. Saved user avatars are remote image URLs and may not display offline.
+
+## Deep links
+
+Android and iOS register the `githubexplorer` custom URL scheme. The router maps `githubexplorer://user/octocat` to `/users/octocat`. If the app is signed out, the requested destination is preserved through login.
+
+## Run and verify
 
 Requires Flutter with Dart SDK `^3.13.3`.
 
 ```sh
 flutter pub get
 flutter run
-```
-
-Internet access is needed for live GitHub search and profile refreshes. Favorites are stored on device and can be browsed without a connection. The app makes unauthenticated public GitHub API calls as a fallback and therefore remains subject to GitHub's anonymous rate limit.
-
-## Checks
-
-```sh
 flutter analyze
 flutter test
 ```
 
-The tests cover GitHub search query/pagination parameters, response mapping, and rate limit error conversion.
+The GitHub API tests cover query and pagination parameters, response mapping, and rate-limit errors. Riverpod tests cover debounced loading, success, empty, and rate-limit transitions; widget tests cover loading, retryable error, and empty states. GitHub Actions runs analysis and tests on pushes and pull requests.
 
-## Structure
+## Native integration and limitations
 
-The app currently keeps the assignment's compact domain, data, and presentation layers in `lib/main.dart`: `GitHubUser` is the domain model; `GitHubApi`, `AuthRepository`, and `FavoritesRepository` provide API, session, and persistence responsibilities; screens and routing form the presentation layer. SQLite uses a `favorites` table and secure storage keeps the mock token and expiry separate from the database.
-# githubexplorer
-# githubexplorer
+The native integration is profile sharing through the platform share sheet (`share_plus`). Connectivity status is provided by `connectivity_plus`; connectivity signals can vary by platform and do not guarantee that a remote service is reachable. Mock authentication is intentionally local and is not a production security boundary.
