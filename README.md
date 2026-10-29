@@ -41,3 +41,4 @@ The tests cover GitHub search query/pagination parameters, response mapping, and
 
 The app currently keeps the assignment's compact domain, data, and presentation layers in `lib/main.dart`: `GitHubUser` is the domain model; `GitHubApi`, `AuthRepository`, and `FavoritesRepository` provide API, session, and persistence responsibilities; screens and routing form the presentation layer. SQLite uses a `favorites` table and secure storage keeps the mock token and expiry separate from the database.
 # githubexplorer
+# githubexplorer
